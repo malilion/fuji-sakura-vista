@@ -2,7 +2,7 @@
   "passed": true,
   "blender": "4.5.3 LTS",
   "five_roof_tiers": 5,
-  "objects": 3248,
+  "objects": 3759,
   "external_images": 0,
   "camera_checks": {
     "1": {
@@ -78,5 +78,5 @@
       }
     }
   },
-  "petal_travel_m": 3.691
+  "petal_travel_m": 3.886
 }

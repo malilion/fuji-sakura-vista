@@ -5,9 +5,9 @@
   "layout": "Art-directed interpretation; not a surveyed reconstruction.",
   "geometry": "All scene geometry and procedural shaders authored by build_scene.py.",
   "external_assets": [],
-  "objects": 3248,
-  "unique_meshes": 2014,
-  "unique_mesh_polygons": 1612292,
+  "objects": 3759,
+  "unique_meshes": 2505,
+  "unique_mesh_polygons": 2004988,
   "frames": [
     1,
     288

@@ -62,7 +62,6 @@
 
   <div class="hud hud-top">
     <div class="hud-title">
-      <p class="kicker" data-i18n="viewer.kicker">程序生成 · Blender 4.5 → glTF → Three.js</p>
       <h2 data-i18n="viewer.title">富士山、忠靈塔與清晨的櫻花</h2>
       <p class="hud-hint" data-i18n="viewer.hint">拖曳旋轉 · 滾輪縮放 · 右鍵平移</p>
     </div>
@@ -94,13 +93,13 @@
       <h2 data-i18n="intro.title">一份可重建的 Blender 場景，和它的即時版本</h2>
     </div>
     <div class="prose">
-      <p data-i18n="intro.p1">整個場景——五層忠靈塔、下行石階、朱紅欄杆、暖色燈籠、四種櫻花樹型、富士吉田市街與帶放射狀溝紋的富士山——都由一支 Python 腳本以固定亂數種子生成，不依賴任何外部貼圖或掃描資產。</p>
-      <p data-i18n="intro.p2">Cycles 渲染以 AgX 色彩管理與清晨方向光完成；網頁版本把同一份 .blend 匯出為 6 MB 的 Draco glTF，在瀏覽器中以 GPU 實例化重建 196 棵櫻花樹、在著色器裡重現微風，並以 Three.js 燈光與天空重新打光。</p>
+      <p data-i18n="intro.p1">整個場景——五層忠靈塔、下行石階、朱紅欄杆、暖色燈籠、六種櫻花樹型、富士吉田市街與帶放射狀溝紋的富士山——都由一支 Python 腳本以固定亂數種子生成，不依賴任何外部貼圖或掃描資產。</p>
+      <p data-i18n="intro.p2">Cycles 渲染以 AgX 色彩管理與清晨方向光完成；網頁版本把同一份 .blend 匯出為 8 MB 的 Draco glTF，在瀏覽器中以 GPU 實例化重建 196 棵櫻花樹、在著色器裡重現微風，並以 Three.js 燈光與天空重新打光。</p>
       <dl class="facts" id="facts">
         <div><dt data-i18n="facts.objects">物件</dt><dd id="factObjects">3,248</dd></div>
-        <div><dt data-i18n="facts.polys">Cycles 多邊形</dt><dd id="factPolys">34.3M</dd></div>
+        <div><dt data-i18n="facts.polys">Cycles 多邊形</dt><dd id="factPolys">36.6M</dd></div>
         <div><dt data-i18n="facts.webtris">網頁三角形 / 幀</dt><dd id="factWebTris">11.5M</dd></div>
-        <div><dt data-i18n="facts.glb">glTF 大小</dt><dd id="factGlb">6.4 MB</dd></div>
+        <div><dt data-i18n="facts.glb">glTF 大小</dt><dd id="factGlb">7.9 MB</dd></div>
         <div><dt data-i18n="facts.frames">攝影機動畫</dt><dd>288 f · 24 fps</dd></div>
         <div><dt data-i18n="facts.seed">亂數種子</dt><dd>829</dd></div>
       </dl>
@@ -155,7 +154,7 @@
       <li>
         <span class="num">04</span>
         <h3><code>scripts/export_web.py</code></h3>
-        <p data-i18n="pipe.s4">不修改原始 .blend：以整朵花為單位抽樣櫻花（近景 34%、遠景 11%）、針葉減半、攤平程序材質為 PBR 數值、套用修改器並依集合合併，輸出 Draco 壓縮 glTF 與 export_manifest.json。</p>
+        <p data-i18n="pipe.s4">不修改原始 .blend：以整朵花為單位抽樣六種櫻花（近景 34%、遠景 11%）、針葉減半、攤平程序材質為 PBR 數值、套用修改器並依集合合併，輸出 Draco 壓縮 glTF 與 export_manifest.json。</p>
       </li>
       <li>
         <span class="num">05</span>
@@ -176,7 +175,7 @@
     </div>
     <ul class="dl-list">
       <li><a href="https://github.com/malilion/fuji-sakura-vista/releases/latest/download/arakurayama_sunrise.blend"><strong>arakurayama_sunrise.blend</strong><span>Blender 4.5.3 · 123 MB · GitHub Release</span></a></li>
-      <li><a href="assets/arakurayama.glb"><strong>arakurayama.glb</strong><span>Draco glTF · 6.4 MB · <span data-i18n="dl.web">網頁版場景</span></span></a></li>
+      <li><a href="assets/arakurayama.glb"><strong>arakurayama.glb</strong><span>Draco glTF · 7.9 MB · <span data-i18n="dl.web">網頁版場景</span></span></a></li>
       <li><a href="assets/still.jpg"><strong>frame_0288</strong><span>1920×1080 · Cycles 96 spp</span></a></li>
       <li><a href="assets/preview.mp4"><strong>first_light_preview.mp4</strong><span>640×360 · 8 fps · 12 s</span></a></li>
       <li><a href="https://github.com/malilion/fuji-sakura-vista/tree/main/scripts"><strong>scripts/</strong><span data-i18n="dl.scripts">建場、渲染、驗證與匯出腳本</span></a></li>
