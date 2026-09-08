@@ -131,6 +131,21 @@ def materials():
     material('Stone',(.24,.255,.255),.86,noise_scale=30,bump=.065)
     material('Stone light',(.37,.35,.31),.83,noise_scale=32,bump=.045)
     material('Dark stone',(.13,.155,.147),.88,noise_scale=24,bump=.06)
+    # Foot-polished centre treads and lichen-stained wall stones break up the uniform grey.
+    material('Stone worn',(.20,.205,.195),.80,noise_scale=26,bump=.04)
+    material('Lichen stone',(.20,.235,.185),.90,noise_scale=19,bump=.07)
+    # Large-scale verdigris blooms over the copper roofs.
+    m=M['Oxidized roof']; n=m.node_tree.nodes; l=m.node_tree.links
+    bs=n.get('Principled BSDF')
+    patch=n.new('ShaderNodeTexNoise'); patch.inputs['Scale'].default_value=1.6; patch.inputs['Detail'].default_value=5; patch.inputs['Roughness'].default_value=.62
+    vramp=n.new('ShaderNodeValToRGB')
+    vramp.color_ramp.elements[0].position=.47; vramp.color_ramp.elements[0].color=(0,0,0,1)
+    vramp.color_ramp.elements[1].position=.60; vramp.color_ramp.elements[1].color=(1,1,1,1)
+    l.new(patch.outputs['Fac'],vramp.inputs[0])
+    base_link=[lk for lk in l if lk.to_socket==bs.inputs['Base Color']][0]
+    base_out=base_link.from_socket
+    mix=n.new('ShaderNodeMixRGB'); mix.inputs[2].default_value=(.15,.33,.29,1)
+    l.new(vramp.outputs['Color'],mix.inputs[0]); l.new(base_out,mix.inputs[1]); l.new(mix.outputs[0],bs.inputs['Base Color'])
     material('Soil',(.084,.095,.051),.97,noise_scale=9,bump=.09)
     material('Moss',(.12,.16,.036),.96,noise_scale=15,bump=.05)
     material('Bark',(.09,.047,.026),.88,noise_scale=17,bump=.08)
@@ -214,8 +229,18 @@ def terrain():
         z=8.45-step*.155
         for slab in range(5):
             x=(slab-2)*1.15+RNG.uniform(-.018,.018)
-            box(f'Tread {step:02d} slab {slab}',(x,y,z-.15),(1.14,.606,.30),
-                M['Stone light' if RNG.random()<.35 else 'Stone'],.025)
+            # Centre slabs are polished by feet; edge slabs settle and chip unevenly.
+            r=RNG.random()
+            if slab==2 and r<.45: mat=M['Stone worn']
+            elif r<.30: mat=M['Stone light']
+            elif r>.93: mat=M['Lichen stone']
+            else: mat=M['Stone']
+            settle=RNG.uniform(-.014,.008)*(1+abs(slab-2)*.6)
+            tread=box(f'Tread {step:02d} slab {slab}',(x,y,z-.15+settle),(1.14+RNG.uniform(-.02,.01),.606,.30),
+                mat,RNG.uniform(.012,.048))
+            tread.rotation_euler=(RNG.uniform(-.010,.010),RNG.uniform(-.014,.014),RNG.uniform(-.006,.006))
+            if RNG.random()<(.20 if abs(slab-2)==2 else .06):
+                box('Joint moss',(x+RNG.choice([-1,1])*.57,y+RNG.uniform(-.2,.2),z+.003),(.06,RNG.uniform(.12,.34),.014),M['Moss'],.004)
     # Landings connect the downhill approach to the tower terrace.
     box('Lower landing',(0,31,-1.8),(6,5,.5),M['Stone'],.05)
     box('Pagoda terrace',(12,35,-1.7),(15,16,1.0),M['Stone'],.09)
@@ -224,11 +249,14 @@ def terrain():
         for j in range(52):
             y=-11+j*.81
             z=8.45-(y+11)*.155/.61
-            rock=box('Retaining wall stone',(side*3.22,y,z-.20),
-                     (RNG.uniform(.5,.85),RNG.uniform(.68,.95),RNG.uniform(.55,.9)),M['Dark stone'],.12)
-            rock.rotation_euler=(RNG.uniform(-.08,.08),RNG.uniform(-.10,.10),RNG.uniform(-.1,.1))
-            if j%2==0:
-                box('Moss ledge',(side*3.24,y,z+.22),(.46,.52,.025),M['Moss'],.015)
+            r=RNG.random()
+            rockmat=M['Lichen stone'] if r<.22 else M['Stone'] if r<.34 else M['Dark stone']
+            rock=box('Retaining wall stone',(side*(3.22+RNG.uniform(-.07,.09)),y,z-.20+RNG.uniform(-.05,.05)),
+                     (RNG.uniform(.42,.95),RNG.uniform(.55,1.0),RNG.uniform(.45,.95)),rockmat,RNG.uniform(.06,.16))
+            rock.rotation_euler=(RNG.uniform(-.10,.10),RNG.uniform(-.13,.13),RNG.uniform(-.14,.14))
+            if RNG.random()<.62:
+                box('Moss ledge',(side*(3.24+RNG.uniform(-.06,.06)),y+RNG.uniform(-.15,.15),z+.22+RNG.uniform(-.04,.04)),
+                    (RNG.uniform(.28,.52),RNG.uniform(.30,.60),.025),M['Moss'],.015)
 
 
 def railings():
@@ -273,6 +301,12 @@ def roof(name, center, half, z, rise, mat, seams=True):
                 faces.append((a,a+1,a+steps_u+2,a+steps_u+1))
         curve(name+' red eave',[point(side,-1+2*i/32,1,-.09) for i in range(33)],.10,M['Aged vermilion'])
         curve(name+' edge lip',[point(side,-1+2*i/32,1,.025) for i in range(33)],.038,M['Roof seam'])
+        # Rolled copper hip ridge down each corner, ending in a small upturned ridge cap.
+        if seams:
+            hip=[point(side,1,i/16,.055) for i in range(17)]
+            curve(name+' hip ridge',hip,.065,M['Roof seam'])
+            cap=box('Hip ridge cap',hip[-1],(.30,.30,.16),M['Bronze'],.03)
+            cap.rotation_euler[2]=side*math.pi/2+math.pi/4
         if seams:
             for row in range(1,14):
                 t=row/14
@@ -295,8 +329,8 @@ def pagoda():
     box('Pagoda plinth',(cx,cy,base),(10.2,10.2,.5),M['Stone light'],.06)
     for tier in range(5):
         level=base+.25+tier*3.35
-        width=6.1-tier*.40
-        h=2.4
+        width=6.1-tier*.50
+        h=2.4-tier*.06
         box(f'Tier {tier+1} plaster core',(cx,cy,level+h/2),(width,width,h),white,.025)
         for side in [-1,1]:
             for axis in [0,1]:
@@ -307,6 +341,19 @@ def pagoda():
                     loc=(cx,cy+side*(width/2+.08),level+elev) if axis==0 else (cx+side*(width/2+.08),cy,level+elev)
                     size=(width+.3,.18,thick) if axis==0 else (.18,width+.3,thick)
                     box('Horizontal vermilion band',loc,size,red,.015)
+        # Dark lattice windows in each bay between the uprights, above the balcony rail.
+        for side in [-1,1]:
+            for axis in [0,1]:
+                for p in [-.25,.25]:
+                    w=width*.30
+                    loc=(cx+p*width,cy+side*(width/2+.02),level+1.45) if axis==0 else (cx+side*(width/2+.02),cy+p*width,level+1.45)
+                    size=(w,.05,.72) if axis==0 else (.05,w,.72)
+                    box('Lattice window recess',loc,size,M['Lantern timber'],.006)
+                    for k in range(5):
+                        q=-w/2+w*(k+.5)/5
+                        bl=(cx+p*width+q,cy+side*(width/2+.055),level+1.45) if axis==0 else (cx+side*(width/2+.055),cy+p*width+q,level+1.45)
+                        bs=(.035,.04,.70) if axis==0 else (.04,.035,.70)
+                        box('Lattice bar',bl,bs,M['Bronze'],.003)
         deck=width+1.1
         box('Balcony deck',(cx,cy,level+.22),(deck,deck,.16),M['Aged vermilion'],.035)
         for side in [-1,1]:
@@ -319,7 +366,7 @@ def pagoda():
                     loc=(cx,cy+side*deck/2,level+elev) if axis==0 else (cx+side*deck/2,cy,level+elev)
                     size=(deck+.18,.105,.105) if axis==0 else (.105,deck+.18,.105)
                     box('Balcony rail',loc,size,red,.01)
-        half=5.3-tier*.36
+        half=5.3-tier*.42
         rz=level+h+.04
         roof(f'Roof {tier+1} / swept copper',(cx,cy),half,rz,.94,M['Oxidized roof'])
         # Shadowed bracket rhythm underneath all four eaves.
@@ -335,6 +382,13 @@ def pagoda():
                 y2=cy+u*.78*math.sin(angle)+(width/2+.28)*math.cos(angle)
                 b=box('Ivory bracket end',(x2,y2,rz-.30),(.13,.32,.17),white,.012)
                 b.rotation_euler[2]=angle
+            # Stepped bracket clusters above each upright carry the eave visually.
+            for p in [-.5,0,.5]:
+                for k,(dz,w) in enumerate([(-.62,.30),(-.46,.46),(-.30,.64)]):
+                    x3=cx+p*width*math.cos(angle)-(width/2+.16+k*.10)*math.sin(angle)
+                    y3=cy+p*width*math.sin(angle)+(width/2+.16+k*.10)*math.cos(angle)
+                    c=box('Bracket cluster',(x3,y3,rz+dz),(w,.22+k*.18,.13),red if k%2 else white,.008)
+                    c.rotation_euler[2]=angle
     # Small entrance gives the lower floor a human scale.
     box('Shadow within entry',(cx,cy-3.13,base+1.25),(1.45,.055,1.95),M['Lantern timber'],.012)
     for x in [cx-.57,cx,cx+.57]:
@@ -418,15 +472,29 @@ def flower_geometry(batch, center, scale, rot, shade):
     batch.add(vs,[tuple(range(6))],4)
 
 
-def sakura_tree(seed, hero=False):
+# Six sakura silhouettes.  Somei-yoshino spreads into a broad umbrella, yamazakura
+# grows taller and more upright with rustier young leaves, the low old tree leans and
+# sprawls, and a drooping form lets the outer branches fall like a light shidare.
+SPECIES=[
+    dict(name='yoshino hero',   lean=.10, trunk=2.40, spread=.70, droop=.00, kids=(3,3), length=(1.9,2.7), flowers=46, shades=[2,4,6,1]),
+    dict(name='yamazakura',     lean=.05, trunk=2.15, spread=.58, droop=-.04, kids=(3,3), length=(1.6,2.3), flowers=36, shades=[3,3,4,3]),
+    dict(name='old spreading',  lean=.22, trunk=1.35, spread=.88, droop=.08, kids=(2,4), length=(1.5,2.1), flowers=36, shades=[2,5,5,1]),
+    dict(name='yoshino',        lean=.08, trunk=1.75, spread=.68, droop=.02, kids=(3,3), length=(1.5,2.2), flowers=38, shades=[2,4,5,1]),
+    dict(name='drooping',       lean=.06, trunk=2.05, spread=.60, droop=.22, kids=(2,3), length=(1.6,2.3), flowers=40, shades=[1,5,6,1]),
+    dict(name='young slender',  lean=.03, trunk=2.20, spread=.48, droop=-.03, kids=(2,2), length=(1.3,1.9), flowers=28, shades=[3,4,4,2]),
+]
+
+
+def sakura_tree(seed, species):
     r=random.Random(seed)
+    sp=SPECIES[species]
     wood=Batch(); petals=Batch()
     terminals=[]
     def branch(a, direction, length, radius, depth):
         a=Vector(a); direction=Vector(direction).normalized()
+        # Deeper branches sag or lift depending on the species.
+        direction=(direction+Vector((0,0,-sp['droop']*(3-depth)))).normalized()
         b=a+direction*length
-        mid=a+direction*length*.50+Vector((r.uniform(-.13,.13),r.uniform(-.13,.13),.08))
-        # Curved branch segments rather than conspicuous straight elbows.
         points=[]
         bend=Vector((r.uniform(-.14,.14),r.uniform(-.14,.14),r.uniform(-.02,.12)))
         for k in range(7):
@@ -435,32 +503,50 @@ def sakura_tree(seed, hero=False):
         for k in range(6):
             wood.tube(points[k],points[k+1],radius*(1-.5*k/6),radius*(1-.5*(k+1)/6),sides=10 if radius>.12 else 6)
         if depth==0:
-            terminals.append((a,b))
+            terminals.append((a,b,direction,1.0))
             return
-        for k in range(3 if depth>1 else 2):
+        if depth==1:
+            terminals.append((a,b,direction,.45))
+        lo,hi=sp['kids']
+        for k in range(r.randint(lo,hi) if depth>1 else 2):
             angle=r.uniform(0,TAU)
-            spread=.66 if depth>1 else .8
+            spread=sp['spread'] if depth>1 else sp['spread']+.14
             d=direction*.70+Vector((math.cos(angle)*spread,math.sin(angle)*spread,r.uniform(.1,.5)))
             branch(b,d,length*r.uniform(.56,.73),radius*.48,depth-1)
-    wood.tube((0,0,0),(.16,-.08,1.85),.34,.24,sides=10)
-    for i in range(6):
+    # Trunk as three leaning segments so the bole reads as grown, not extruded.
+    lean=Vector((r.uniform(-1,1),r.uniform(-1,1),0)).normalized()*sp['lean']
+    trunk=[Vector((0,0,0))]
+    for k in range(1,4):
+        t=k/3
+        trunk.append(Vector((lean.x*t*sp['trunk']*1.6,lean.y*t*sp['trunk']*1.6,t*sp['trunk']))+Vector((r.uniform(-.05,.05),r.uniform(-.05,.05),0)))
+    for k in range(3):
+        wood.tube(trunk[k],trunk[k+1],.34*(1-.12*k),.34*(1-.12*(k+1)),sides=12)
+    top=trunk[-1]
+    for i in range(6 if species!=5 else 5):
         a=i*TAU/6+r.uniform(-.3,.3)
-        branch((.16,-.08,1.5+r.uniform(0,.5)),(math.cos(a),math.sin(a),r.uniform(.55,1.0)),r.uniform(1.5,2.2),.18,3)
-    for a,b in terminals:
-        a,b=Vector(a),Vector(b)
-        for i in range(44 if hero else 35):
-            t=r.random()
-            p=a.lerp(b,t)+Vector((r.uniform(-.29,.29),r.uniform(-.29,.29),r.uniform(-.19,.24)))
-            rot=Euler((r.uniform(-1.6,1.6),r.uniform(-1.6,1.6),r.uniform(0,TAU))).to_matrix()
-            flower_geometry(petals,p,r.uniform(.050,.082),rot,r.choices([0,1,2,3],[2,4,5,1])[0])
+        lo,hi=sp['length']
+        branch(top+Vector((0,0,r.uniform(-.35,.15))),(math.cos(a),math.sin(a),r.uniform(.55,1.05)),r.uniform(lo,hi),.18,3)
+    # Blossoms hang in umbels of three to six on short twigs, not as a uniform mist.
+    for a,b,d,density in terminals:
+        clusters=max(2,round(sp['flowers']*density/4.5))
+        for i in range(clusters):
+            t=r.uniform(.15,1.0)
+            base_pt=a.lerp(b,t)
+            twig=Vector((r.uniform(-.28,.28),r.uniform(-.28,.28),r.uniform(-.22,.18)))
+            centre=base_pt+twig
+            wood.tube(base_pt,centre,.014,.008,sides=4)
+            for k in range(r.randint(3,6)):
+                p=centre+Vector((r.uniform(-.09,.09),r.uniform(-.09,.09),r.uniform(-.07,.06)))
+                rot=Euler((r.uniform(-1.6,1.6),r.uniform(-1.6,1.6),r.uniform(0,TAU))).to_matrix()
+                flower_geometry(petals,p,r.uniform(.050,.082),rot,r.choices([0,1,2,3],sp['shades'])[0])
     return wood,petals
 
 
 def vegetation():
     col=collection('05 • Sakura grove / linked botanical meshes')
     prototypes=[]
-    for i in range(4):
-        wood,p=sakura_tree(321+i,i==0)
+    for i in range(len(SPECIES)):
+        wood,p=sakura_tree(321+i,i)
         w=wood.finish('Sakura branch library',[M['Bark']])
         f=p.finish('Sakura flower library',[M[f'Petal {j}'] for j in range(4)]+[M['Stamen']])
         prototypes.append((w.data,f.data))
@@ -477,7 +563,7 @@ def vegetation():
     for i in range(95):
         positions.append((RNG.uniform(-140,140),RNG.uniform(112,285),RNG.uniform(.9,1.6)))
     for i,(x,y,s) in enumerate(positions):
-        pair=prototypes[i%4]
+        pair=prototypes[i%len(SPECIES)]
         angle=RNG.uniform(0,TAU)
         for j,data in enumerate(pair):
             obj=bpy.data.objects.new(f'Sakura {i:02d} '+('branches' if j==0 else 'blossoms'),data)
@@ -574,14 +660,26 @@ def fuji():
     radius,height,base=800,320,-29
     angular,rings=400,170
     verts=[]; faces=[]; snow_faces=[]
+    def relief(a,t):
+        """Radial erosion: several gully bands with noise-wandering phase, V-shaped
+        bottoms, deepening down the slope.  Returns (height offset, valley 0..1)."""
+        valley=0.0; total=0.0
+        for k,amp in ((23,.30),(41,.55),(77,.28),(131,.12)):
+            phase=noise.noise(Vector((math.cos(a)*2.6,math.sin(a)*2.6,k*.037)))*3.4
+            v=abs(math.sin(a*k*.5+phase))**.62          # sharp valley floors, rounded ridges
+            valley+=amp*(1-v); total+=amp
+        valley/=total
+        depth=(1.5+8.5*t**1.35)*math.sin(t*math.pi)**.7
+        erosion=noise.noise(Vector((math.cos(a)*t*14,math.sin(a)*t*14,2.7)))*2.6*t
+        return -valley*depth+erosion, valley
     for j in range(rings+1):
         t=.014+(1-.014)*j/rings
         for i in range(angular):
             a=i*TAU/angular
             radial=radius*t*(1+.025*math.sin(3*a)+.018*math.cos(7*a))
             h=height*(1-t)**1.62
-            gullies=(math.sin(a*41+math.sin(a*9)*2)*.55+math.sin(a*77)*.22)*math.sin(t*math.pi)*5.0
-            h+=gullies + noise.noise_vector(Vector((math.cos(a)*t*9,math.sin(a)*t*9,t*3)))[0]*2*math.sin(t*math.pi)
+            g,_=relief(a,t)
+            h+=g + noise.noise_vector(Vector((math.cos(a)*t*9,math.sin(a)*t*9,t*3)))[0]*2*math.sin(t*math.pi)
             # Rounded, slightly asymmetric summit ridge, not a needle cone.
             h+=1.7*math.sin(4*a)*(1-t)**12
             verts.append((cx+radial*math.cos(a),cy+radial*math.sin(a),base+h))
@@ -608,10 +706,13 @@ def fuji():
         t=j/rings
         for i in range(angular):
             a=i*TAU/angular
-            edge=.29+.065*math.sin(a*41+math.sin(a*9)*2)+.028*math.sin(a*77)+.015*math.sin(a*13)
-            # Narrow tongues in gullies, softened and varied down each slope.
-            irregular=noise.noise(Vector((math.cos(a)*t*50,math.sin(a)*t*50,t*30)))*.014
-            attrdata.data[j*angular+i].value=max(0,min(1,(edge-t+irregular)*95))
+            _,valley=relief(a,t)
+            # Snow lingers as tongues down the gully floors, is scoured on the windward
+            # (south-west) face, and breaks into an irregular fringe along the snowline.
+            aspect=math.cos(a-math.radians(225))
+            edge=.29+.075*valley-.045*max(0,aspect)+.015*math.sin(a*13)
+            irregular=noise.noise(Vector((math.cos(a)*t*50,math.sin(a)*t*50,t*30)))*.018
+            attrdata.data[j*angular+i].value=max(0,min(1,(edge-t+irregular)*70))
     # Close the tiny summit opening.
     cap=mesh('Fuji summit snow rim',verts[:angular],[tuple(reversed(range(angular)))],M['Snow'])
     # Lower foothills soften the join to the city without a lake or a hard horizon.
