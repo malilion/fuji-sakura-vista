@@ -129,10 +129,12 @@ ffmpeg -framerate 24 -start_number 1 -i renders/frames/frame_%04d.png -c:v libx2
 
 ## 取得 .blend
 
-`.blend` 不放在 git 內，而是作為 [GitHub Release](https://github.com/malilion/fuji-sakura-vista/releases) 附件提供——不計流量配額，clone 也不需要 git-lfs：
+`.blend` 不放在 git 內，而是作為 [GitHub Release v1.0](https://github.com/malilion/fuji-sakura-vista/releases/tag/v1.0) 附件提供——不計流量配額，clone 也不需要 git-lfs：
 
 ```sh
 curl -L -o arakurayama_sunrise.blend https://github.com/malilion/fuji-sakura-vista/releases/latest/download/arakurayama_sunrise.blend
+shasum -a 256 arakurayama_sunrise.blend
+# 9ae38e134b04e7a3b98dcb9d356089edc18edaf0aa596ef2fed9539f921be4b4
 ```
 
 或直接從腳本重建，結果相同（固定種子 829）：
