@@ -1,0 +1,17 @@
+{
+  "programs": [],
+  "stream_groups": [],
+  "streams": [
+    {
+      "width": 640,
+      "height": 360,
+      "avg_frame_rate": "8/1",
+      "nb_frames": "96"
+    }
+  ],
+  "format": {
+    "duration": "12.000000"
+  },
+  "source_timeline_fps": 24,
+  "sampling": "Every third Blender frame; motion preview, not the 24 fps master."
+}

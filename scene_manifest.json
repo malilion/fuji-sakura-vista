@@ -1,0 +1,19 @@
+{
+  "title": "Arakurayama \u2014 First Light",
+  "blender": "4.5.3 LTS",
+  "seed": 829,
+  "layout": "Art-directed interpretation; not a surveyed reconstruction.",
+  "geometry": "All scene geometry and procedural shaders authored by build_scene.py.",
+  "external_assets": [],
+  "objects": 3248,
+  "unique_meshes": 2014,
+  "unique_mesh_polygons": 1612292,
+  "frames": [
+    1,
+    288
+  ],
+  "fps": 24,
+  "render_device": "GPU",
+  "roof_tiers": 5,
+  "output_blend": "arakurayama_sunrise.blend"
+}
