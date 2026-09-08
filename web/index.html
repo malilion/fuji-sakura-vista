@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fuji Sakura Vista — Arakurayama First Light</title>
+<meta name="description" content="Interactive Three.js showcase of a procedurally built Blender scene: Chureito pagoda, sakura grove and Mount Fuji at dawn.">
+<meta property="og:title" content="Fuji Sakura Vista — Arakurayama First Light">
+<meta property="og:description" content="Blender source, Cycles renders and a real-time Three.js walk-through of Arakurayama Sengen Park at first light.">
+<meta property="og:image" content="assets/still_960.jpg">
+<meta name="theme-color" content="#0f1116">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="#top">
+    <span class="brand-mark">🌸</span>
+    <span class="brand-text">Fuji Sakura Vista</span>
+  </a>
+  <nav class="topnav">
+    <a href="#viewer" data-i18n="nav.viewer">互動場景</a>
+    <a href="#renders" data-i18n="nav.renders">Cycles 渲染</a>
+    <a href="#pipeline" data-i18n="nav.pipeline">製作流程</a>
+    <a href="#download" data-i18n="nav.download">下載</a>
+    <a class="gh" href="https://github.com/malilion/fuji-sakura-vista" target="_blank" rel="noopener">GitHub ↗</a>
+    <button class="lang" id="langToggle" type="button" aria-label="Switch language">EN</button>
+  </nav>
+</header>
+
+<main id="top">
+
+<!-- ============================================================ VIEWER -->
+<section class="viewer" id="viewer">
+  <canvas id="stage" aria-label="Interactive 3D scene of Arakurayama at dawn"></canvas>
+
+  <div class="viewer-fallback" id="fallback" hidden>
+    <img src="assets/still.jpg" alt="Cycles render of the scene">
+    <p data-i18n="viewer.nowebgl">此瀏覽器無法啟動 WebGL，以下為 Cycles 渲染靜幀。</p>
+  </div>
+
+  <div class="loader" id="loader">
+    <div class="loader-inner">
+      <p class="loader-kicker">Arakurayama · 新倉山淺間公園</p>
+      <h1 class="loader-title">First Light</h1>
+      <div class="bar"><div class="bar-fill" id="barFill"></div></div>
+      <p class="loader-status"><span id="loaderText" data-i18n="viewer.loading">載入場景</span> <span id="loaderPct"></span></p>
+    </div>
+  </div>
+
+  <div class="hud hud-top">
+    <div class="hud-title">
+      <p class="kicker" data-i18n="viewer.kicker">程序生成 · Blender 4.5 → glTF → Three.js</p>
+      <h2 data-i18n="viewer.title">富士山、忠靈塔與清晨的櫻花</h2>
+      <p class="hud-hint" data-i18n="viewer.hint">拖曳旋轉 · 滾輪縮放 · 右鍵平移</p>
+    </div>
+  </div>
+
+  <div class="hud hud-bottom">
+    <div class="controls" role="toolbar">
+      <button class="btn primary" id="btnReveal" type="button" data-i18n="ctl.reveal">▶ 重播 12 秒推進</button>
+      <button class="btn toggle is-on" id="btnWind" type="button" aria-pressed="true" data-i18n="ctl.wind">微風</button>
+      <button class="btn toggle is-on" id="btnPetals" type="button" aria-pressed="true" data-i18n="ctl.petals">飄落花瓣</button>
+      <button class="btn toggle" id="btnOrbit" type="button" aria-pressed="false" data-i18n="ctl.orbit">自動環繞</button>
+      <button class="btn toggle is-on" id="btnShadows" type="button" aria-pressed="true" data-i18n="ctl.shadows">陰影</button>
+      <button class="btn" id="btnReset" type="button" data-i18n="ctl.reset">回到主構圖</button>
+      <button class="btn" id="btnFull" type="button" data-i18n="ctl.full">全螢幕</button>
+    </div>
+    <div class="stats" id="stats" aria-live="off">
+      <span id="statFps">— fps</span>
+      <span id="statTris">— tris</span>
+      <span id="statCalls">— calls</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ INTRO -->
+<section class="intro">
+  <div class="wrap grid-2">
+    <div>
+      <p class="kicker" data-i18n="intro.kicker">關於這個場景</p>
+      <h2 data-i18n="intro.title">一份可重建的 Blender 場景，和它的即時版本</h2>
+    </div>
+    <div class="prose">
+      <p data-i18n="intro.p1">整個場景——五層忠靈塔、下行石階、朱紅欄杆、暖色燈籠、四種櫻花樹型、富士吉田市街與帶放射狀溝紋的富士山——都由一支 Python 腳本以固定亂數種子生成，不依賴任何外部貼圖或掃描資產。</p>
+      <p data-i18n="intro.p2">Cycles 渲染以 AgX 色彩管理與清晨方向光完成；網頁版本把同一份 .blend 匯出為 6 MB 的 Draco glTF，在瀏覽器中以 GPU 實例化重建 196 棵櫻花樹、在著色器裡重現微風，並以 Three.js 燈光與天空重新打光。</p>
+      <dl class="facts" id="facts">
+        <div><dt data-i18n="facts.objects">物件</dt><dd id="factObjects">3,248</dd></div>
+        <div><dt data-i18n="facts.polys">Cycles 多邊形</dt><dd id="factPolys">34.3M</dd></div>
+        <div><dt data-i18n="facts.webtris">網頁三角形 / 幀</dt><dd id="factWebTris">11.5M</dd></div>
+        <div><dt data-i18n="facts.glb">glTF 大小</dt><dd id="factGlb">6.4 MB</dd></div>
+        <div><dt data-i18n="facts.frames">攝影機動畫</dt><dd>288 f · 24 fps</dd></div>
+        <div><dt data-i18n="facts.seed">亂數種子</dt><dd>829</dd></div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ RENDERS -->
+<section class="renders" id="renders">
+  <div class="wrap">
+    <p class="kicker" data-i18n="renders.kicker">Cycles / Metal</p>
+    <h2 data-i18n="renders.title">離線渲染</h2>
+    <figure class="still">
+      <a href="assets/still.jpg" target="_blank" rel="noopener"><img src="assets/still.jpg" alt="First Light — frame 288, Cycles 96 samples" loading="lazy"></a>
+      <figcaption data-i18n="renders.stillcap">第 288 格主視覺 — 1920×1080、96 samples、AgX。</figcaption>
+    </figure>
+    <div class="grid-2 video-row">
+      <figure class="video">
+        <video src="assets/preview.mp4" controls muted loop playsinline preload="metadata" poster="assets/still_960.jpg"></video>
+        <figcaption data-i18n="renders.videocap">12 秒動態預覽 — 640×360 / 8 fps，每三格取樣一次的 96 張實際 Cycles 影格；檢視鏡頭推進、花瓣與微風節奏。</figcaption>
+      </figure>
+      <div class="prose">
+        <h3 data-i18n="renders.h3">鏡頭</h3>
+        <p data-i18n="renders.p1">單一顆 30 mm 攝影機自石階頂端緩慢推進，12 秒內位移約 2.3 公尺並微微抬頭，讓忠靈塔與富士山峰在整段影片中都留在框內；validation.json 記錄了第 1、144、288 格兩者的投影座標。</p>
+        <p data-i18n="renders.p2">網頁版的「重播 12 秒推進」使用相同的起點、終點與傾角，之後把控制權交給軌道攝影機。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ PIPELINE -->
+<section class="pipeline" id="pipeline">
+  <div class="wrap">
+    <p class="kicker" data-i18n="pipe.kicker">從腳本到瀏覽器</p>
+    <h2 data-i18n="pipe.title">製作流程</h2>
+    <ol class="steps">
+      <li>
+        <span class="num">01</span>
+        <h3><code>scripts/build_scene.py</code></h3>
+        <p data-i18n="pipe.s1">以 bpy 模組在背景建立 12 個集合：地形、欄杆、五層塔、燈籠、櫻花、常綠樹、市街、富士山、飄落花瓣、天空與攝影機。程序材質、Geometry Nodes 微風與 90 片花瓣動畫皆在此定義。</p>
+      </li>
+      <li>
+        <span class="num">02</span>
+        <h3><code>scripts/render_scene.py</code></h3>
+        <p data-i18n="pipe.s2">preview / still / animation / animatic 四種預設，Metal 或 CPU 裝置，可分段渲染與補算缺格，每批附 render_log.json。</p>
+      </li>
+      <li>
+        <span class="num">03</span>
+        <h3><code>scripts/validate_scene.py</code></h3>
+        <p data-i18n="pipe.s3">重新載入 .blend，確認五個獨立屋頂層、外部貼圖依賴為零、花瓣有位移，以及塔頂與富士山峰在關鍵影格的攝影機投影位置。</p>
+      </li>
+      <li>
+        <span class="num">04</span>
+        <h3><code>scripts/export_web.py</code></h3>
+        <p data-i18n="pipe.s4">不修改原始 .blend：以整朵花為單位抽樣櫻花（近景 34%、遠景 11%）、針葉減半、攤平程序材質為 PBR 數值、套用修改器並依集合合併，輸出 Draco 壓縮 glTF 與 export_manifest.json。</p>
+      </li>
+      <li>
+        <span class="num">05</span>
+        <h3><code>web/js/scene.js</code></h3>
+        <p data-i18n="pipe.s5">Three.js 載入 glTF，將 392 個櫻花節點合併為 InstancedMesh，在頂點著色器中加入隨高度增強的微風、重建太陽與燈籠光源、漸層天空與大氣透視，並以 AgX 色調映射對齊離線渲染的觀感。</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================================================ DOWNLOAD -->
+<section class="download" id="download">
+  <div class="wrap grid-2">
+    <div>
+      <p class="kicker" data-i18n="dl.kicker">原始檔與成果</p>
+      <h2 data-i18n="dl.title">下載</h2>
+      <p class="prose" data-i18n="dl.note">.blend 以 Git LFS 儲存；clone 時請先安裝 git-lfs，或直接以下方連結取得單檔。</p>
+    </div>
+    <ul class="dl-list">
+      <li><a href="https://media.githubusercontent.com/media/malilion/fuji-sakura-vista/main/arakurayama_sunrise.blend"><strong>arakurayama_sunrise.blend</strong><span>Blender 4.5.3 · 123 MB · Git LFS</span></a></li>
+      <li><a href="assets/arakurayama.glb"><strong>arakurayama.glb</strong><span>Draco glTF · 6.4 MB · <span data-i18n="dl.web">網頁版場景</span></span></a></li>
+      <li><a href="assets/still.jpg"><strong>frame_0288</strong><span>1920×1080 · Cycles 96 spp</span></a></li>
+      <li><a href="assets/preview.mp4"><strong>first_light_preview.mp4</strong><span>640×360 · 8 fps · 12 s</span></a></li>
+      <li><a href="https://github.com/malilion/fuji-sakura-vista/tree/main/scripts"><strong>scripts/</strong><span data-i18n="dl.scripts">建場、渲染、驗證與匯出腳本</span></a></li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <p data-i18n="foot.p">藝術化重組，並非實地測繪還原。以新倉山淺間公園照片作建築與季節參考。</p>
+    <p><a href="https://github.com/malilion/fuji-sakura-vista">github.com/malilion/fuji-sakura-vista</a> · Blender 4.5.3 LTS · Three.js r170</p>
+  </div>
+</footer>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "source": "arakurayama_sunrise.blend",
+  "output": "web/assets/arakurayama.glb",
+  "bytes": 6426256,
+  "triangles_per_frame": 11482468,
+  "near_flower_keep": 0.34,
+  "far_flower_keep": 0.11,
+  "far_y": 112,
+  "needle_keep": 0.5,
+  "joined_meshes": {
+    "Hillside and stone approach": 53622,
+    "Vermilion railings": 6588,
+    "Chureito / five roof tiers": 187828,
+    "Dawn lanterns": 49344,
+    "Evergreen hillside": 347480,
+    "Fallen petals and undergrowth": 8200,
+    "Fujiyoshida valley": 75240,
+    "Fuji / radial gullies and spring snow": 69201
+  },
+  "draco": true,
+  "blender": "4.5.3 LTS"
+}
