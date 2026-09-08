@@ -8,7 +8,7 @@
 
 | | Cycles 離線渲染 | Three.js 即時場景 |
 |---|---|---|
-| 來源 | `arakurayama_sunrise.blend` (Git LFS, 123 MB) | `web/assets/arakurayama.glb` (Draco, 6.4 MB) |
+| 來源 | `arakurayama_sunrise.blend` (GitHub Release, 123 MB) | `web/assets/arakurayama.glb` (Draco, 6.4 MB) |
 | 幾何 | 3,248 物件 · 34.3M 多邊形（櫻花為實例） | 20 網格 · 88 draw calls · 11.5M 三角形 / 幀 |
 | 櫻花 | 4 組共用網格 × 196 棵 · Geometry Nodes 微風 | `InstancedMesh` · 頂點著色器微風 · 近 / 遠 LOD |
 | 光影 | 清晨方向光 · 天空貼圖 · 8 盞燈籠點光 · 山谷薄霧 | 方向光 + 半球光 · 漸層天空著色器 · 8 盞點光 · 指數霧 |
@@ -18,7 +18,7 @@
 ## 專案結構
 
 ```
-arakurayama_sunrise.blend   主要成果（Git LFS）
+arakurayama_sunrise.blend   主要成果（放在 GitHub Releases，不在 git 內）
 scripts/
   build_scene.py            以 bpy 從零建立整個場景（固定種子 829）
   render_scene.py           preview / still / animation / animatic 渲染預設
@@ -129,14 +129,17 @@ ffmpeg -framerate 24 -start_number 1 -i renders/frames/frame_%04d.png -c:v libx2
 
 ## 取得 .blend
 
-`.blend` 以 Git LFS 儲存，clone 前請先安裝 [git-lfs](https://git-lfs.com)：
+`.blend` 不放在 git 內，而是作為 [GitHub Release](https://github.com/malilion/fuji-sakura-vista/releases) 附件提供——不計流量配額，clone 也不需要 git-lfs：
 
 ```sh
-git lfs install
-git clone https://github.com/malilion/fuji-sakura-vista.git
+curl -L -o arakurayama_sunrise.blend https://github.com/malilion/fuji-sakura-vista/releases/latest/download/arakurayama_sunrise.blend
 ```
 
-或直接下載單檔：<https://media.githubusercontent.com/media/malilion/fuji-sakura-vista/main/arakurayama_sunrise.blend>
+或直接從腳本重建，結果相同（固定種子 829）：
+
+```sh
+.venv/bin/python scripts/build_scene.py --render none
+```
 
 ## 部署
 

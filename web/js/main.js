@@ -29,7 +29,7 @@ const STRINGS = {
     'pipe.s4': 'Leaves the source .blend untouched: subsamples blossoms per whole flower (34 % near, 11 % far), halves the needle sprays, flattens procedural shaders to PBR factors, applies modifiers, joins per collection and writes a Draco glTF plus export_manifest.json.',
     'pipe.s5': 'Three.js loads the glTF, batches the 392 sakura nodes into InstancedMesh, adds height-weighted wind in the vertex shader, rebuilds the sun and lantern lights, a gradient sky with aerial perspective, and tone-maps with AgX to match the offline look.',
     'dl.kicker': 'Source and outputs', 'dl.title': 'Download',
-    'dl.note': 'The .blend lives in Git LFS — install git-lfs before cloning, or fetch the single file from the link below.',
+    'dl.note': 'The .blend ships as a GitHub Release asset — no Git LFS, no bandwidth quota; it can also be regenerated from build_scene.py.',
     'dl.web': 'web scene', 'dl.scripts': 'build, render, validate and export scripts',
     'foot.p': 'An art-directed interpretation, not a surveyed reconstruction. Photographs of Arakurayama Sengen Park were used as architectural and seasonal reference.',
   },
