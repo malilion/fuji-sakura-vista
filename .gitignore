@@ -6,3 +6,5 @@ renders/frames/
 renders/animatic/frame_*.png
 logs/
 .DS_Store
+.claude/settings.local.json
+web/assets/*.exr
