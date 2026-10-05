@@ -6,5 +6,5 @@ Cython==3.3.0
 idna==3.19
 numpy==1.26.4
 requests==2.34.2
-urllib3==2.7.0
+urllib3==2.8.0
 zstandard==0.25.0
