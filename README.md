@@ -154,3 +154,8 @@ v1.1 完成了 `QA.md` 初版列出的四項精修：忠靈塔逐層收分、戧
 ## 授權
 
 程式碼採 [MIT](LICENSE)；原創素材（美術、模型、音樂、算圖）採 [CC BY-NC 4.0](ASSETS_LICENSE.md)。
+
+---
+
+<!-- malilion-ecosystem-footer -->
+<p align="center"><sub>🦁 碼力獅 <a href="https://github.com/malilion">MaliLion</a> 生態系的一員 · <a href="https://malilion.com">malilion.com</a> · <a href="https://github.com/malilion?tab=repositories">更多作品</a></sub></p>
